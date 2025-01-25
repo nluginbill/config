@@ -10,6 +10,8 @@ if vim.g.started_by_firenvim == true then
 	require("firenvim-config.keymaps").setup()
 end
 
+vim.api.nvim_set_keymap("i", "kj", "<Esc>", { noremap = true, silent = true })
+
 -- ================================================================
 -- MOVEMENT
 -- ================================================================
