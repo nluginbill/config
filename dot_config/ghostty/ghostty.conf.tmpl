@@ -1,9 +1,23 @@
-theme = catppuccin-macchiato
+# -------- THEME --------
+# theme = catppuccin-macchiato
+# theme = catppuccin-mocha
+theme = tokyonight
+# theme = GitHub Dark
+# theme = GitHub-Dark-Dimmed
+# theme = Kanagawa Wave
+# theme = Everforest Dark - Hard
+# theme = neobones_dark
+# SSH theme
+# theme = Paraiso Dark
+# theme = Red Planet
+# theme = rose-pine
+# theme = rose-pine-moon
+# theme = SoftServer
+# theme = SpaceGray Eighties
+
 # custom-shader = shaders/glitchy.glsl
 
-# initial-command = ghostty -e fish ghostty_animation
-# command = 
-
+# -------- FONT --------
 # font-family = "Julia Mono Phosphor Fill"
 # font-family-bold = "Julia Mono Phosphor Fill"
 # font-family-italic = "Julia Mono Phosphor Fill"
@@ -35,6 +49,7 @@ font-feature = "-liga"
 font-feature = "-dlig"
 font-synthetic-style = false
 
+# -------- KEYMAPS --------
 # TODO: Adjust keymaps to use triggers (leader key) and mirror vim as much as possible
 keybind = global:ctrl+grave_accent=toggle_quick_terminal
 
@@ -60,6 +75,15 @@ keybind = super+shift+d=scroll_page_down
 keybind = super+shift+g=scroll_to_bottom
 keybind = super+shift+t=scroll_to_top
 
+# -------- OPTIONS --------
+working-directory = home
+clipboard-read = allow
+shell-integration-features = true
+
+# initial-command = ghostty -e fish ghostty_animation
+# command =
+
+# -------- UI --------
 mouse-hide-while-typing = true
 selection-invert-fg-bg = true
 cursor-invert-fg-bg = true
@@ -69,10 +93,12 @@ adjust-cursor-thickness = 2
 adjust-box-thickness =
 adjust-underline-thickness = 1
 
-working-directory = home
-clipboard-read = allow
-shell-integration-features = true
+# unfocused-split-opacity = 0.9
+# unfocused-split-fill = "#f7768e"
+background-blur-radius = 20
+background-opacity = .9
 
+window-new-tab-position = end
 window-padding-balance = true
 window-height = 40
 window-width = 120

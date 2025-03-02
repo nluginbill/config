@@ -3,7 +3,13 @@
 -- ================================================================
 -- CUSTOM AUTO COMMANDS
 -- ================================================================
-
+-- NOTE: Workaround since something is overriding this since we have it set in options. Remove once we figure out what is overriding.
+-- Disabling for now as having root dir set works with persistence.nvim better
+-- vim.api.nvim_create_autocmd("BufEnter", {
+-- 	callback = function()
+-- 		vim.opt.autochdir = true
+-- 	end,
+-- })
 -- ================================================================
 -- Filetype specific autocmds
 -- ================================================================
@@ -27,6 +33,12 @@
 -- 		end
 -- 	end,
 -- })
+
+-- Trim trailing whitespace on save
+vim.api.nvim_create_autocmd("BufWritePre", {
+	pattern = "*", -- Applies to all files
+	command = [[%s/\s\+$//e]],
+})
 
 -- Use 2 spaces for markdown files
 vim.api.nvim_create_autocmd("FileType", {

@@ -177,7 +177,7 @@ return {
 			flavour = "auto", -- latte, frappe, macchiato, mocha
 			background = { -- :h background
 				light = "frappe",
-				dark = "macchiato",
+				dark = "mocha",
 			},
 			transparent_background = false, -- disables setting the background color.
 			show_end_of_buffer = false, -- shows the '~' characters after the end of buffers
@@ -280,8 +280,8 @@ return {
 				functions = {},
 				variables = {},
 				-- Background styles. Can be "dark", "transparent" or "normal"
-				sidebars = "dark", -- style for sidebars, see below
-				floats = "dark", -- style for floating windows
+				sidebars = "transparent", -- style for sidebars, see below
+				floats = "transparent", -- style for floating windows
 			},
 			sidebars = { "qf", "help" }, -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
 			day_brightness = 0.3, -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
@@ -299,6 +299,20 @@ return {
 			---@param highlights Highlights
 			---@param colors ColorScheme
 			on_highlights = function(highlights, colors) end,
+			cache = true, -- When set to true, the theme will be cached for better performance
+			---@type table<string, boolean|{enabled:boolean}>
+			plugins = {
+				-- enable all plugins when not using lazy.nvim
+				-- set to false to manually enable/disable plugins
+				all = package.loaded.lazy == nil,
+				-- uses your plugin manager to automatically enable needed plugins
+				-- currently only lazy.nvim is supported
+				auto = true,
+				-- add any plugins here that you want to enable
+				-- for all possible plugins, see:
+				--   * https://github.com/folke/tokyonight.nvim/tree/main/lua/tokyonight/groups
+				-- telescope = true,
+			},
 		},
 	},
 	-- {
@@ -359,8 +373,8 @@ return {
 		"LazyVim/LazyVim",
 		opts = {
 			-- colorscheme = "everforest",
-			-- colorscheme = "tokyonight",
-			colorscheme = "catppuccin",
+			colorscheme = "tokyonight",
+			-- colorscheme = "catppuccin",
 		},
 	},
 }

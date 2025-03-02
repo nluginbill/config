@@ -8,7 +8,7 @@ vim.g.maplocalleader = " " -- Set local leader key to space
 -- Set global for `$(chezmoi source-path)`
 local cm_path = vim.fn.system("chezmoi source-path")
 vim.g.chezmoi_source_path = cm_path
-vim.g.root_spec = { { ".git", "lua" }, "lsp", "cwd" }
+vim.g.root_spec = { { ".git" }, "lua", "lsp", "cwd" }
 
 -- Ensure the 'list' option is enabled
 vim.opt.list = true
@@ -21,13 +21,25 @@ vim.opt.listchars = {
 }
 -- Remove 'blank' from sessionoptions to avoid opening empty unnamed buffers
 vim.opt.sessionoptions:remove("blank")
+vim.opt.sessionoptions:remove("help")
+vim.opt.sessionoptions:remove("skiprtp")
+-- vim.opt.sessionoptions:remove("curdir")
+vim.opt.sessionoptions:append("localoptions")
+-- NOTE: adding options can result in unexpected behavior, e.g. if you make nvim config changes and load an existing session, those changes may not be integrated.
+-- vim.opt.sessionoptions:append("options")
+-- Change dir to currently open buffer
+-- FIXME: something is setting this to false after options load. doesn't seem to be mini.misc auto root, or project.nvim
+-- opt.autochdir = true
+-- Add '-' to keyword so kebab case is considered a word (i.e. 'variable-name' is one word)
+vim.opt.iskeyword:append("-")
 -- use bash for shell, fish is very slow in nvim
 opt.shell = "bash"
 -- opt.shell = "/opt/homebrew/bin/fish"
 opt.undofile = true -- Save undo history between sessions
 opt.tabstop = 4 -- A tab is equal to 4 spaces
-opt.shiftwidth = 4 -- Number of spaces to use for each step of (auto)indent
+opt.shiftwidth = 0 -- Number of spaces to use for each step of (auto)indent
 opt.expandtab = true -- Convert tabs to spaces
+opt.autoindent = true
 opt.cursorline = true -- Enable highlighting of the current line
 opt.scrolloff = 999 -- Lines of context
 opt.relativenumber = true
@@ -46,14 +58,37 @@ opt.mousehide = true -- Hide mouse cursor while typing
 opt.winheight = 1 -- Minimum window height
 opt.winminheight = 1 -- Minimum window height
 opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
--- Disable diagnostics by default
-vim.diagnostic.disable()
-opt.autochdir = true
+-- Enable diagnostics by default
+vim.diagnostic.enable(true)
 -- FORMATTING
 -- default "tcqj"
 opt.formatoptions = "qnlj"
 vim.g.autoformat = true
 vim.g.lazyvim_prettier_needs_config = false
+-- Disable diagnostics in certain filetypes
+local diagnostics_disabled_fts = {
+	"markdown",
+	"txt",
+	"json",
+	"sh",
+	"bash",
+	"zsh",
+	"fish",
+	"conf",
+	"cfg",
+	"ini",
+	"toml",
+	"yaml",
+	"yml",
+	"env",
+	"gitconfig",
+} -- Add your desired filetypes here
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = diagnostics_disabled_fts,
+	callback = function()
+		vim.diagnostic.enable(false, { bufnr = 0 })
+	end,
+})
 if vim.fn.has("nvim-0.10") == 1 then
 	opt.smoothscroll = true
 	opt.foldexpr = "v:lua.require'lazyvim.util'.ui.foldexpr()"

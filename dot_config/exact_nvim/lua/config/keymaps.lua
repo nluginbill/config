@@ -16,8 +16,13 @@ vim.api.nvim_set_keymap("i", "kj", "<Esc>", { noremap = true, silent = true })
 -- MOVEMENT
 -- ================================================================
 -- Make basic movement operate on visual lines rather than logical lines when word-wrapped.
-map({ "n", "v" }, "j", "gj", { noremap = true, silent = true })
-map({ "n", "v" }, "k", "gk", { noremap = true, silent = true })
+-- NOTE: we are already getting these mappings from somewhere, but leaving these here in case they disappear in the future.
+-- vim.keymap.set({ "n", "v", "x" }, "j", function()
+-- 	return vim.v.count == 0 and "gj" or "j"
+-- end, { noremap = true, expr = true, silent = true })
+-- vim.keymap.set({ "n", "v", "x" }, "k", function()
+-- 	return vim.v.count == 0 and "gk" or "k"
+-- end, { noremap = true, expr = true, silent = true })
 map({ "n", "v" }, "^", "g^", { noremap = true, silent = true })
 map({ "n", "v" }, "$", "g$", { noremap = true, silent = true })
 -- Scrolling
@@ -72,7 +77,7 @@ map("n", "<c-q>", function()
 	if #listed_buffers == 1 then
 		vim.cmd("lua Snacks.dashboard({win=0})") -- Open the dashboard
 	else
-		require("snacks").bufdelete() -- enable once we use `snacks` again
+		require("snacks").bufdelete.delete() -- enable once we use `snacks` again
 	end
 end)
 
@@ -104,7 +109,7 @@ wk.add({
 		"<leader>E",
 		function()
 			if not MiniFiles.close() then
-				MiniFiles.open(MiniFiles.get_latest_path())
+				MiniFiles.open(vim.cmd.pwd())
 			end
 		end,
 		desc = "MiniFiles Explorer (cwd)",
