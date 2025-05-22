@@ -1,3 +1,4 @@
+# PATH="/usr/local/bin:$PATH"
 DIR_PROMPT="\[$(tput setaf 6)\]\w"
 GIT_PROMPT="\[$(tput setaf 5)\]\$(git symbolic-ref --short HEAD 2>/dev/null)"
 # Check if CUSTOM_HOSTNAME is set by ~/.ssh/config and use it in the prompt, otherwise use the default hostname
