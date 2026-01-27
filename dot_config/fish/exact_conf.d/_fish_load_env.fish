@@ -1,3 +1,3 @@
-if test -e $HOME/.local/share/chezmoi/secrets/load-env.fish
-    source $HOME/.local/share/chezmoi/secrets/load-env.fish
+if test -e $HOME/.local/share/chezmoi/secrets/load_env.fish
+    source $HOME/.local/share/chezmoi/secrets/load_env.fish
 end
