@@ -2,9 +2,9 @@ local colors = require("tokyonight.colors").setup({ style = "night" } )
 -- local colors = require("tokyonight").load({ style = "night" })
 
 return {
-	"echasnovski/mini.tabline",
+	"nvim-mini/mini.tabline",
 	version = false,
-	dependencies = { "echasnovski/mini.icons" },
+	dependencies = { "nvim-mini/mini.icons" },
 	-- cond = function()
 	-- 	return vim.bo.filetype ~= "snacks_dashboard"
 	-- end,

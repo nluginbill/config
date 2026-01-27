@@ -13,10 +13,10 @@ return {
         event = "LazyFile",
         dependencies = {
             "mason.nvim",
-            { "williamboman/mason-lspconfig.nvim", opts = {} },
+            { "mason-org/mason-lspconfig.nvim", opts = {} },
             {
                 -- Ensure yapf is installed via Mason
-                "williamboman/mason.nvim",
+                "mason-org/mason.nvim",
                 opts = {
                     ensure_installed = {
                         "bash-language-server",
@@ -116,15 +116,6 @@ return {
             document_highlight = {
                 enabled = true,
             },
-            -- add any global capabilities here
-            capabilities = {
-                workspace = {
-                    fileOperations = {
-                        didRename = true,
-                        willRename = true,
-                    },
-                },
-            },
             -- options for vim.lsp.buf.format
             -- `bufnr` and `filter` is handled by the LazyVim formatter,
             -- but can be also overridden when specified
@@ -136,6 +127,17 @@ return {
             ---@type lspconfig.options
             ---@diagnostic disable: missing-fields
             servers = {
+                -- Global capabilities for all servers
+                ["*"] = {
+                    capabilities = {
+                        workspace = {
+                            fileOperations = {
+                                didRename = true,
+                                willRename = true,
+                            },
+                        },
+                    },
+                },
                 yamlls = {
                     filetypes = { "yaml", "yml" },
                     settings = {

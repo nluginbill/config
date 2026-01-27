@@ -121,7 +121,7 @@ local function custom_section_filename(args)
 end
 
 return {
-    "echasnovski/mini.statusline",
+    "nvim-mini/mini.statusline",
     version = false,
     -- cond = function()
     -- 	return vim.bo.filetype ~= "snacks_dashboard"

@@ -4,7 +4,7 @@ return {
 	ft = "markdown", -- If you decide to lazy-load anyway
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
-		"echasnovski/mini.icons",
+		"nvim-mini/mini.icons",
 		{ "MeanderingProgrammer/render-markdown.nvim", enabled = false },
 	},
 	config = function(_, opts)
