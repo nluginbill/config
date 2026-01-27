@@ -34,6 +34,7 @@ return {
     dependencies = {
         -- NOTE: necessary here otherwise copilot shows up in LazyVim as disabled, possibly a LazyVim bug
         { "zbirenbaum/copilot.lua", enabled = true, opts = {} },
+        { "giuxtaposition/blink-cmp-copilot" },
         { "saghen/blink.compat" },
         -- { "mikavilpas/blink-ripgrep.nvim" },
         -- {
