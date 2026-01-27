@@ -70,7 +70,7 @@ vim.g.lazyvim_prettier_needs_config = false
 
 if vim.fn.has("nvim-0.10") == 1 then
     opt.smoothscroll = true
-    opt.foldexpr = "v:lua.require'lazyvim.util'.ui.foldexpr()"
+    opt.foldexpr = "v:lua.require'lazyvim.util'.treesitter.foldexpr()"
     opt.foldmethod = "expr"
     opt.foldtext = ""
 else
