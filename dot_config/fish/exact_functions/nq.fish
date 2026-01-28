@@ -21,14 +21,13 @@ function nq --wraps=nb --description 'alias nq nb'
     if test -z "$path" -a -z "$filename" -a -n "$content"
         # Check if we have a quicknote for today
         set -l today (date "+%Y%m%d")
-        set -l todays_note (nb list notes/ | rg -N "^.*("$today"\d{6}\.md).*\$" --replace '$1')
 
-        if test -n "$todays_note"
+        if nb list notes/$today.md >/dev/null 2>&1
             # Add to today's existing note
-            nb edit notes/$todays_note --content "$content"
+            nb edit notes/$today.md --content "$content"
         else
             # Create a new quicknote with content
-            nb add notes/ --content "$content"
+            nb add notes/$today.md --content "$content"
         end
 
         # If just filename is provided, edit existing `notes/<filename>` or create new `notes/<filename>`
