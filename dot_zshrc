@@ -171,8 +171,8 @@ alias ld="lazydocker"
 # Vi-mongo
 alias vm="vi-mongo"
 alias no="nvim ~/.nb"
-# Kitty term diff viewer
-alias diff="kitten diff"
+# Side-by-side diff viewer (was `kitten diff` under kitty; using difftastic on ghostty)
+alias diff="difft"
 # Utility aliases
 # Yank current dir to clipboard (`pbcopy` is macOS)
 alias ywd="pwd | pbcopy"
@@ -193,26 +193,17 @@ preexec() {
 }
 # Use `batgrep` for `rg` with `bat` syntax highlighting, also defaults to smartcase
 alias rg='batgrep -S'
-# SSH kitten
 ksh() {
-    # This works
-    # kitten ssh -t "$@" bash --rcfile /tmp/ssh-kitten-config/.bashrc
-    # This seems to work as well
-    kitten ssh -t "$@" 'if which zsh >/dev/null 2>&1; then exec zsh; else exec bash --rcfile /tmp/ssh-kitten-config/ssh-dotfiles/.bashrc; fi'
+    ssh -t "$@" 'if command -v zsh >/dev/null 2>&1; then exec zsh; else exec bash; fi'
 }
 # `yazi` file manager alias to change cwd on exit of yazi
-# also disables cursor trail while in yazi
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-    # Disable cursor trail while in yazi, requires remote_control to be allowed in kitty
-    kitten @ load-config --override cursor_trail=0
 	yazi "$@" --cwd-file="$tmp"
 	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
 		builtin cd -- "$cwd"
 	fi
 	rm -f -- "$tmp"
-    # Enable again on exit
-    kitten @ load-config --override cursor_trail=3
 }
 # Git add and commit
 # Usage: `commit "<commit message>"`
