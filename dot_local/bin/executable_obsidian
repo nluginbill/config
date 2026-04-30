@@ -1,0 +1,334 @@
+#!/usr/bin/env python3
+"""Custom Obsidian CLI for vault filesystem operations and GUI handoff.
+
+Reverse-engineered from fish functions (vd, vs, on, om, or, orec, ot, otc,
+otd, otag, oi, os, da, dt) that depend on its surface. See ~/.config/fish/functions/.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.parse
+from datetime import datetime
+from pathlib import Path
+
+OBSIDIAN_REGISTRY = Path.home() / "Library/Application Support/obsidian/obsidian.json"
+TASK_RE = re.compile(r"^(\s*)-\s*\[([ xX])\]\s*(.*)$")
+SKIP_DIRS = {".obsidian", ".trash", ".git", "node_modules"}
+
+
+def die(msg: str, code: int = 1) -> "None":
+    print(f"obsidian: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def parse_args(argv: list[str]) -> tuple[list[str], dict[str, str], set[str]]:
+    """Split argv into positional tokens, key=value pairs, and bare flags."""
+    positional: list[str] = []
+    kv: dict[str, str] = {}
+    flags: set[str] = set()
+    for a in argv:
+        if "=" in a and not a.startswith("="):
+            k, _, v = a.partition("=")
+            kv[k] = v
+        elif positional or ":" in a or not kv:
+            positional.append(a)
+        else:
+            flags.add(a)
+    # Anything left after kv pairs that isn't k=v is a flag (e.g. "open", "verbose").
+    leftover = [a for a in argv if "=" not in a and a not in positional]
+    flags.update(leftover)
+    return positional, kv, flags
+
+
+def find_vault() -> Path:
+    if not OBSIDIAN_REGISTRY.exists():
+        die(f"vault registry not found: {OBSIDIAN_REGISTRY}")
+    data = json.loads(OBSIDIAN_REGISTRY.read_text())
+    vaults = data.get("vaults", {})
+    open_vault = next((v for v in vaults.values() if v.get("open")), None)
+    chosen = open_vault or next(iter(vaults.values()), None)
+    if not chosen:
+        die("no vaults registered with Obsidian")
+    return Path(chosen["path"])
+
+
+def vault_config(vault: Path, name: str) -> dict:
+    f = vault / ".obsidian" / f"{name}.json"
+    if f.exists():
+        return json.loads(f.read_text())
+    return {}
+
+
+def daily_folder(vault: Path) -> str:
+    return vault_config(vault, "daily-notes").get("folder", "daily")
+
+
+def template_folder(vault: Path) -> str:
+    return vault_config(vault, "templates").get("folder", "templates")
+
+
+def daily_relpath(vault: Path) -> str:
+    return f"{daily_folder(vault)}/{datetime.now().strftime('%Y-%m-%d')}.md"
+
+
+def render_template(vault: Path, name: str, title: str = "") -> str:
+    tpl = vault / template_folder(vault) / f"{name}.md"
+    if not tpl.exists():
+        die(f"template not found: {tpl}")
+    now = datetime.now()
+    body = tpl.read_text()
+    body = body.replace("{{title}}", title or "")
+    body = body.replace("{{date}}", now.strftime("%Y-%m-%d"))
+    body = body.replace("{{time}}", now.strftime("%H:%M"))
+    return body
+
+
+def ensure_file(path: Path, body: str = "") -> bool:
+    """Create the file if missing. Returns True if newly created."""
+    if path.exists():
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body)
+    return True
+
+
+def gui_open(vault: Path, relpath: str) -> "None":
+    qs = urllib.parse.urlencode({"vault": vault.name, "file": relpath})
+    subprocess.run(["open", f"obsidian://open?{qs}"], check=False)
+
+
+def iter_markdown(vault: Path):
+    for root, dirs, files in os.walk(vault):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        for f in files:
+            if f.endswith(".md"):
+                yield Path(root) / f
+
+
+def collect_tasks(vault: Path, scope: Path | None = None):
+    """Yield (status_char, text, relpath, line_no) for every checklist item."""
+    target = scope if scope else vault
+    files = [scope] if scope and scope.is_file() else iter_markdown(target)
+    skip_root = vault / template_folder(vault)
+    for f in files:
+        if skip_root in f.parents or f == skip_root:
+            continue
+        try:
+            for i, line in enumerate(f.read_text().splitlines(), start=1):
+                m = TASK_RE.match(line)
+                if m:
+                    status = " " if m.group(2) == " " else "x"
+                    yield status, m.group(3).strip(), str(f.relative_to(vault)), i
+        except (OSError, UnicodeDecodeError):
+            continue
+
+
+# --- subcommands ---
+
+
+def cmd_daily(_argv, _kv, _flags) -> "None":
+    vault = find_vault()
+    rel = daily_relpath(vault)
+    ensure_file(vault / rel)
+
+
+def cmd_daily_path(_argv, _kv, _flags) -> "None":
+    print(daily_relpath(find_vault()))
+
+
+def cmd_daily_append(_argv, kv, _flags) -> "None":
+    content = kv.get("content")
+    if content is None:
+        die("daily:append requires content=")
+    vault = find_vault()
+    rel = daily_relpath(vault)
+    path = vault / rel
+    ensure_file(path)
+    with path.open("a") as f:
+        if path.stat().st_size and not path.read_text().endswith("\n"):
+            f.write("\n")
+        f.write(content + "\n")
+
+
+def cmd_vault(argv, kv, _flags) -> "None":
+    if "info" in kv and kv["info"] == "path":
+        print(find_vault())
+        return
+    if argv and argv[0] == "info" and kv.get("info", "") in ("path", ""):
+        print(find_vault())
+        return
+    die(f"unknown vault subcommand: {argv} {kv}")
+
+
+def cmd_create(_argv, kv, flags) -> "None":
+    vault = find_vault()
+    rel = kv.get("path")
+    if not rel:
+        name = kv.get("name")
+        if not name:
+            die("create requires path= or name=")
+        rel = f"{name}.md" if not name.endswith(".md") else name
+    body = ""
+    if tpl := kv.get("template"):
+        title = Path(rel).stem
+        body = render_template(vault, tpl, title=title)
+    ensure_file(vault / rel, body)
+    if "open" in flags:
+        gui_open(vault, rel)
+
+
+def cmd_open(_argv, kv, _flags) -> "None":
+    rel = kv.get("file")
+    if not rel:
+        die("open requires file=")
+    gui_open(find_vault(), rel)
+
+
+def cmd_append(_argv, kv, _flags) -> "None":
+    rel = kv.get("file")
+    content = kv.get("content")
+    if not rel or content is None:
+        die("append requires file= and content=")
+    vault = find_vault()
+    if not rel.endswith(".md"):
+        rel += ".md"
+    path = vault / rel
+    ensure_file(path)
+    with path.open("a") as f:
+        if path.stat().st_size and not path.read_text().endswith("\n"):
+            f.write("\n")
+        f.write(content + "\n")
+
+
+def cmd_recents(_argv, _kv, _flags) -> "None":
+    vault = find_vault()
+    ws = vault / ".obsidian/workspace.json"
+    if not ws.exists():
+        return
+    data = json.loads(ws.read_text())
+    seen: set[str] = set()
+    for rel in data.get("lastOpenFiles", []):
+        if not rel.endswith(".md"):
+            continue
+        if rel in seen:
+            continue
+        if not (vault / rel).exists():
+            continue
+        seen.add(rel)
+        print(rel)
+
+
+def cmd_search_context(_argv, kv, _flags) -> "None":
+    query = kv.get("query")
+    if not query:
+        die("search:context requires query=")
+    vault = find_vault()
+    subprocess.run(
+        ["rg", "--type", "md", "--line-number", "--no-heading", "--color", "never",
+         "-C", "1", query, str(vault)],
+        check=False,
+    )
+
+
+def cmd_tasks(argv, kv, flags) -> "None":
+    vault = find_vault()
+    scope = vault
+    if "daily" in argv:
+        scope = vault / daily_relpath(vault)
+        if not scope.exists():
+            return
+    want_done = "done" in argv
+    fmt = kv.get("format", "tsv" if "format" in kv else None)
+    rows = [
+        (s, text, file, line)
+        for s, text, file, line in collect_tasks(vault, scope if scope != vault else None)
+        if (want_done and s == "x") or (not want_done and s == " ")
+    ]
+    if fmt == "tsv":
+        for s, text, file, line in rows:
+            print(f"{s}\t{text}\t{file}\t{line}")
+        return
+    if "verbose" in flags or "verbose" in argv:
+        for s, text, file, line in rows:
+            print(f"[{s}] {text}  ({file}:{line})")
+        return
+    for _, text, _, _ in rows:
+        print(f"- [{rows[0][0]}] {text}")
+
+
+def cmd_task(_argv, kv, flags) -> "None":
+    rel = kv.get("path")
+    line_str = kv.get("line")
+    if not rel or not line_str:
+        die("task requires path= and line=")
+    try:
+        line_no = int(line_str)
+    except ValueError:
+        die(f"line= must be an integer, got {line_str!r}")
+    vault = find_vault()
+    path = vault / rel
+    if not path.exists():
+        die(f"file not found: {rel}")
+    lines = path.read_text().splitlines(keepends=True)
+    if not 1 <= line_no <= len(lines):
+        die(f"line {line_no} out of range for {rel}")
+    target = lines[line_no - 1]
+    m = TASK_RE.match(target.rstrip("\n"))
+    if not m:
+        die(f"{rel}:{line_no} is not a task line")
+    if "done" in flags or "done" in _argv:
+        new_status = "x"
+    elif "undone" in flags or "undone" in _argv:
+        new_status = " "
+    else:
+        die("task requires done or undone flag")
+    new_line = f"{m.group(1)}- [{new_status}] {m.group(3)}"
+    if target.endswith("\n"):
+        new_line += "\n"
+    lines[line_no - 1] = new_line
+    path.write_text("".join(lines))
+
+
+# --- dispatch ---
+
+# (subcommand-token tuple) -> handler
+COMMANDS = {
+    ("daily",): cmd_daily,
+    ("daily:path",): cmd_daily_path,
+    ("daily:append",): cmd_daily_append,
+    ("vault",): cmd_vault,
+    ("create",): cmd_create,
+    ("open",): cmd_open,
+    ("append",): cmd_append,
+    ("recents",): cmd_recents,
+    ("search:context",): cmd_search_context,
+    ("tasks",): cmd_tasks,
+    ("task",): cmd_task,
+}
+
+
+def main(argv: list[str]) -> "None":
+    if not argv:
+        die("usage: obsidian <command> [args...]\n"
+            "  daily | daily:path | daily:append content=...\n"
+            "  vault info=path\n"
+            "  create path=... [template=...] [open]  |  create name=... [open]\n"
+            "  open file=...  |  append file=... content=...\n"
+            "  recents  |  search:context query=...\n"
+            "  tasks [daily] [todo|done] [verbose] [format=tsv]\n"
+            "  task path=... line=... done|undone")
+    cmd, rest = argv[0], argv[1:]
+    handler = COMMANDS.get((cmd,))
+    if handler is None:
+        die(f"unknown command: {cmd}")
+    positional, kv, flags = parse_args(rest)
+    handler(positional, kv, flags)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
