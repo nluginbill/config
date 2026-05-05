@@ -8,9 +8,9 @@ _G.bt = function()
 end
 vim.print = _G.dd
 
--- Enable detailed LSP logging
-vim.lsp.set_log_level("debug")
-require('vim.lsp.log').set_format_func(vim.inspect)
+-- LSP logging (bump to DEBUG only when actively debugging LSP)
+vim.lsp.log.set_level(vim.lsp.log.levels.WARN)
+vim.lsp.log.set_format_func(vim.inspect)
 
 require("config.lazy")
 

@@ -6,6 +6,8 @@ local opt = vim.opt
 vim.g.mapleader = "," -- Set leader key to comma
 vim.api.nvim_set_keymap("", " ", "<Nop>", { noremap = true, silent = true })
 vim.g.maplocalleader = " "
+-- Dedicated venv for the Python provider (pynvim installed there)
+vim.g.python3_host_prog = vim.fn.expand("~/.venvs/nvim/bin/python")
 -- Set global for `$(chezmoi source-path)`
 local cm_path = vim.fn.system("chezmoi source-path")
 vim.g.chezmoi_source_path = cm_path

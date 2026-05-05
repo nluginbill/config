@@ -32,6 +32,7 @@ return {
             },
         },
         bigfile = { enabled = true },
+        image = { enabled = true },
         input = { enabled = true },
         ---@type snacks.lazygit.Config: snacks.terminal.Opts
         lazygit = { enabled = true },
