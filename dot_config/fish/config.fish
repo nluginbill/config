@@ -3,6 +3,9 @@ function fish_greeting
     # fish_logo blue cyan green
     # echo "░░░░░░▒░▒▒░▒▒▒▒▒▓▒▓▓▓█▓████▓▓▒▒▒░"
     # echo " "
+    if functions -q reap_mcp_orphans
+        reap_mcp_orphans
+    end
 end
 
 if status is-interactive

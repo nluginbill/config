@@ -2,35 +2,35 @@
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
 "$schema" = "https://yazi-rs.github.io/schemas/keymap.json"
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on = ["g", "m"]
 run = "cd ~/.local/share/chezmoi/"
 desc = "Go to the chezmoi directory"
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on = ["s"]
 run = "plugin searchjump"
 desc = "searchjump mode"
 
 # install `ya pack -a Lil-Dank/lazygit`
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on = ["g", "l"]
 run = "plugin lazygit"
 desc = "run lazygit"
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 # On macOS, open preview with Quick Look
 on = "<C-p>"
 run = '''
   shell 'qlmanage -p "$@"' --confirm
 '''
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on = ["o", "f"]
 run = "shell 'open .'"
 desc = "Open Finder at the current directory"
 
-[manager]
+[mgr]
 
 keymap = [
     { on = "<Esc>", run = "escape", desc = "Exit visual mode, clear selected, or cancel search" },

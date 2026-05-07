@@ -10,3 +10,6 @@ secrets
 .aider.input.history
 .aider.chat.history.md
 .aider.tags*
+# gh CLI manages its own auth file; the chezmoi symlink template requires a
+# secrets/.config/gh/private_hosts.yml that may not exist on every machine.
+.config/gh/hosts.yml
