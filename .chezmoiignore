@@ -13,3 +13,5 @@ secrets
 # gh CLI manages its own auth file; the chezmoi symlink template requires a
 # secrets/.config/gh/private_hosts.yml that may not exist on every machine.
 .config/gh/hosts.yml
+# copilot.lua rewrites this on every plugin update, so it drifts perpetually.
+.config/github-copilot/versions.json

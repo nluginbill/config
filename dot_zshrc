@@ -191,8 +191,9 @@ preexec() {
     return 0
   fi
 }
-# Use `batgrep` for `rg` with `bat` syntax highlighting, also defaults to smartcase
-alias rg='batgrep -S'
+# Use `batgrep` via `rgb` for `rg`-style search with `bat` syntax highlighting, also defaults to smartcase
+# (kept off `rg` so the real ripgrep binary stays available for tooling/agents)
+alias rgb='batgrep -S'
 ksh() {
     ssh -t "$@" 'if command -v zsh >/dev/null 2>&1; then exec zsh; else exec bash; fi'
 }
