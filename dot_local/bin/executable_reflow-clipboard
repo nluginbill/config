@@ -1,0 +1,11 @@
+#!/bin/bash
+# Reflow the macOS clipboard: join wrapped lines within paragraphs, keep blank-line breaks.
+echo "$(date '+%Y-%m-%d %H:%M:%S') reflow-clipboard fired (caller=${1:-unknown})" >>"$HOME/.local/share/reflow-clipboard.log"
+/usr/bin/pbpaste | /usr/bin/python3 -c '
+import re, sys
+text = sys.stdin.read()
+paragraphs = re.split(r"\n[ \t]*\n", text)
+joined = [re.sub(r"[ \t]*\n[ \t]*", " ", p).strip() for p in paragraphs]
+out = "\n\n".join(p for p in joined if p)
+sys.stdout.write(out)
+' | /usr/bin/pbcopy

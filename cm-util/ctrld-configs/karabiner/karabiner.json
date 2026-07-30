@@ -449,6 +449,25 @@
                 "type": "basic"
               }
             ]
+          },
+          {
+            "description": "Right Cmd + V: reflow clipboard (join wrapped lines within paragraphs)",
+            "manipulators": [
+              {
+                "from": {
+                  "key_code": "v",
+                  "modifiers": {
+                    "mandatory": ["right_command"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "$HOME/.local/bin/reflow-clipboard"
+                  }
+                ],
+                "type": "basic"
+              }
+            ]
           }
         ]
       },
