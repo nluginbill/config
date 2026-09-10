@@ -78,15 +78,51 @@ return {
             diagnostics = {
                 underline = true,
                 update_in_insert = false,
-                virtual_text = {
-                    virt_text_hide = false,
-                    spacing = 4,
-                    source = "if_many",
-                    prefix = "●",
-                    -- this will set set the prefix to a function that returns the diagnostics icon based on the severity
-                    -- this only works on a recent 0.10.0 build. Will be set to "●" when not supported
-                    -- prefix = "icons",
+                -- Diagnostics render as wrapped virtual lines below the cursor's line
+                -- instead of truncated virtual text at the right window edge.
+                virtual_text = false,
+                virtual_lines = {
+                    current_line = true,
+                    -- Neovim renders virtual lines with `virt_lines_overflow = "scroll"`
+                    -- and offers no wrap mode, so long messages still run off the right
+                    -- edge. The renderer *does* split the message on newlines, so wrap
+                    -- it here and each piece becomes its own virtual line.
+                    format = function(diagnostic)
+                        local msg = diagnostic.code
+                                and string.format("%s: %s", diagnostic.code, diagnostic.message)
+                            or diagnostic.message
+                        -- The renderer left-pads each virtual line to the diagnostic's
+                        -- column, then adds a "└──── " gutter, so budget for both.
+                        local width = math.max(
+                            30,
+                            vim.api.nvim_win_get_width(0) - (diagnostic.col or 0) - 10
+                        )
+                        local out = {}
+                        for line in vim.gsplit(msg, "\n") do
+                            line = line:gsub("%s+$", "")
+                            while #line > width do
+                                local brk = line:sub(1, width):match("^.*()%s")
+                                if not brk or brk < width / 2 then
+                                    brk = width + 1 -- unbroken token: hard break
+                                end
+                                table.insert(out, (line:sub(1, brk - 1):gsub("%s+$", "")))
+                                line = line:sub(brk):gsub("^%s+", "")
+                            end
+                            table.insert(out, line)
+                        end
+                        return table.concat(out, "\n")
+                    end,
                 },
+                -- Previous virtual_text config, kept for easy revert:
+                -- virtual_text = {
+                --     virt_text_hide = false,
+                --     spacing = 4,
+                --     source = "if_many",
+                --     prefix = "●",
+                --     -- this will set set the prefix to a function that returns the diagnostics icon based on the severity
+                --     -- this only works on a recent 0.10.0 build. Will be set to "●" when not supported
+                --     -- prefix = "icons",
+                -- },
                 severity_sort = true,
                 signs = {
                     text = {

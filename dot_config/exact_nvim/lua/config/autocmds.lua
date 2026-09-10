@@ -40,9 +40,9 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	command = [[%s/\s\+$//e]],
 })
 
--- Use 2 spaces for markdown files
+-- Use 2 spaces for markdown and python files
 vim.api.nvim_create_autocmd("FileType", {
-	pattern = "markdown",
+	pattern = { "markdown", "python" },
 	callback = function()
 		vim.bo.tabstop = 2
 		vim.bo.shiftwidth = 2
